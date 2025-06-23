@@ -1,0 +1,191 @@
+from app import db, app
+from app import User, Flashcard, UserProgress
+from werkzeug.security import generate_password_hash
+import os
+import json
+
+def init_database():
+    with app.app_context():
+        # Verificar si el archivo de base de datos existe
+        db_path = os.path.join(os.path.dirname(__file__), 'autism_learning.db')
+        if os.path.exists(db_path):
+            os.remove(db_path)
+            print("Base de datos anterior eliminada.")
+        
+        print("Creando nueva base de datos...")
+        
+        # Crear todas las tablas
+        db.create_all()
+        print("Tablas creadas correctamente.")
+        
+        # Crear usuario de prueba
+        test_user = User(
+            name='Test User',
+            email='test@example.com',
+            password_hash=generate_password_hash('password123', method='sha256')
+        )
+        
+        try:
+            db.session.add(test_user)
+            db.session.commit()
+            print("Usuario de prueba creado correctamente.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error al crear usuario de prueba (puede que ya exista): {e}")
+
+        # Crear flashcards de ejemplo
+        flashcards = [
+            # Desarrollo Emocional
+            Flashcard(
+                category='emociones',
+                question='¿Cómo te sientes cuando ves esta cara?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Grinning%20face/3D/grinning_face_3d.png',
+                options=json.dumps(['Feliz', 'Triste', 'Enojado', 'Asustado']),
+                correct_option=0,
+                feedback='¡Muy bien! Cuando alguien sonríe así, está feliz y contento.'
+            ),
+            Flashcard(
+                category='emociones',
+                question='¿Qué emoción muestra esta cara?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Crying%20face/3D/crying_face_3d.png',
+                options=json.dumps(['Triste', 'Feliz', 'Sorprendido', 'Enojado']),
+                correct_option=0,
+                feedback='¡Correcto! Es importante reconocer cuando alguien está triste para poder ayudar.'
+            ),
+            # Conceptos Básicos
+            Flashcard(
+                category='conceptos',
+                question='¿Cuántos dedos hay en la imagen?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hand%20with%20fingers%20splayed/3D/hand_with_fingers_splayed_3d.png',
+                options=json.dumps(['5', '3', '4', '6']),
+                correct_option=0,
+                feedback='¡Correcto! En una mano tenemos 5 dedos.'
+            ),
+            Flashcard(
+                category='conceptos',
+                question='¿Qué número es este?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Keycap%20digit%20three/3D/keycap_digit_three_3d.png',
+                options=json.dumps(['3', '8', '5', '2']),
+                correct_option=0,
+                feedback='¡Excelente! Este es el número 3.'
+            ),
+            Flashcard(
+                category='conceptos',
+                question='¿Cuál es más grande?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Elephant/3D/elephant_3d.png',
+                options=json.dumps(['Elefante', 'Ratón', 'Gato', 'Conejo']),
+                correct_option=0,
+                feedback='¡Muy bien! El elefante es el animal más grande de estos.'
+            ),
+            # Conocimiento del Entorno
+            Flashcard(
+                category='entorno',
+                question='¿Qué animal es este?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Dog%20face/3D/dog_face_3d.png',
+                options=json.dumps(['Perro', 'Gato', 'Conejo', 'Pájaro']),
+                correct_option=0,
+                feedback='¡Correcto! Es un perro, un animal doméstico muy común.'
+            ),
+            Flashcard(
+                category='entorno',
+                question='¿Qué clima representa esta imagen?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sun/3D/sun_3d.png',
+                options=json.dumps(['Soleado', 'Lluvioso', 'Nublado', 'Nevado']),
+                correct_option=0,
+                feedback='¡Muy bien! Es un día soleado.'
+            ),
+            # Habilidades Sociales
+            Flashcard(
+                category='habilidades_sociales',
+                question='¿Qué deben hacer estas personas para saludarse?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/People%20holding%20hands/3D/people_holding_hands_3d.png',
+                options=json.dumps(['Darse la mano', 'Ignorarse', 'Pelear', 'Gritar']),
+                correct_option=0,
+                feedback='¡Exacto! Darse la mano es una forma amable de saludar.'
+            ),
+            Flashcard(
+                category='habilidades_sociales',
+                question='Si necesitas ayuda, ¿qué debes hacer?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Person%20raising%20hand/3D/person_raising_hand_3d.png',
+                options=json.dumps(['Levantar la mano y pedir ayuda', 'Quedarse en silencio', 'Llorar', 'Irse']),
+                correct_option=0,
+                feedback='¡Muy bien! Pedir ayuda levantando la mano es una buena forma de comunicarte.'
+            ),
+            # Rutinas Diarias
+            Flashcard(
+                category='rutinas_diarias',
+                question='¿Qué haces después de levantarte por la mañana?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sunrise/3D/sunrise_3d.png',
+                options=json.dumps(['Desayunar', 'Jugar videojuegos', 'Ver la tele', 'Volver a dormir']),
+                correct_option=0,
+                feedback='¡Correcto! Desayunar nos da energía para empezar el día.'
+            ),
+            Flashcard(
+                category='rutinas_diarias',
+                question='¿Qué debes hacer antes de ir a dormir?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bed/3D/bed_3d.png',
+                options=json.dumps(['Cepillarte los dientes', 'Comer dulces', 'Correr', 'Jugar']),
+                correct_option=0,
+                feedback='¡Así es! Cepillarse los dientes antes de dormir es muy importante para la salud.'
+            ),
+            # Identificación de Sonidos
+            Flashcard(
+                category='sonidos',
+                question='¿Qué animal hace este sonido? (Miau)',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Cat%20face/3D/cat_face_3d.png',
+                options=json.dumps(['Gato', 'Perro', 'Vaca', 'Pato']),
+                correct_option=0,
+                feedback='¡Correcto! Es el sonido de un gato.'
+            ),
+            Flashcard(
+                category='sonidos',
+                question='¿Qué sonido hace la campana?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bell/3D/bell_3d.png',
+                options=json.dumps(['¡Ding Dong!', '¡Miau!', '¡Pío Pío!', '¡Guau!']),
+                correct_option=0,
+                feedback='¡Muy bien! Las campanas hacen ¡Ding Dong!.'
+            ),
+            # Historias Sociales
+            Flashcard(
+                category='historias_sociales',
+                question='Si un amigo está triste, ¿qué puedes hacer?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hugging%20face/3D/hugging_face_3d.png',
+                options=json.dumps(['Darle un abrazo', 'Reírte', 'Ignorarlo', 'Quitarle un juguete']),
+                correct_option=0,
+                feedback='¡Excelente! Darle un abrazo a un amigo triste es una bonita forma de ayudar.'
+            ),
+            Flashcard(
+                category='historias_sociales',
+                question='¿Qué dices cuando recibes un regalo?',
+                image_url='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wrapped%20gift/3D/wrapped_gift_3d.png',
+                options=json.dumps(['"Gracias"', '"No me gusta"', '"Quiero más"', '"Es feo"']),
+                correct_option=0,
+                feedback='¡Muy bien! Decir "Gracias" es la forma correcta y amable de responder.'
+            )
+        ]
+        
+        print(f"\nAgregando {len(flashcards)} flashcards...")
+        # Agregar las flashcards a la base de datos
+        for flashcard in flashcards:
+            db.session.add(flashcard)
+        
+        # Guardar los cambios
+        try:
+            db.session.commit()
+            print("\n¡Base de datos inicializada correctamente!")
+            print(f"Se agregaron {len(flashcards)} flashcards de ejemplo")
+            
+            # Verificar que las flashcards se guardaron
+            saved_cards = Flashcard.query.all()
+            print(f"\nFlashcards en la base de datos: {len(saved_cards)}")
+            print("\nCategorías disponibles:")
+            categories = set(card.category for card in flashcards)
+            for category in categories:
+                count = sum(1 for card in flashcards if card.category == category)
+                print(f"- {category}: {count} flashcards")
+        except Exception as e:
+            print("\nError al inicializar la base de datos:", str(e))
+            db.session.rollback()
+
+if __name__ == '__main__':
+    init_database() 

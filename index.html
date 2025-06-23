@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Aprendizaje</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #67B26F;
+            --background-light: #f5f7fa;
+            --background-dark: #c3cfe2;
+            --text-dark: #333;
+            --text-light: #f8f8f8;
+            --white: #fff;
+            --grey: #e1e1e1;
+            --shadow-light: rgba(31, 38, 135, 0.08);
+            --shadow-dark: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, var(--background-light) 0%, var(--background-dark) 100%);
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-dark);
+        }
+
+        #root {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* --- General App Layout --- */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 2rem 3rem;
+            background-color: var(--background-light);
+        }
+
+        /* --- Auth Forms --- */
+        .auth-container {
+            max-width: 400px;
+            margin: 5rem auto;
+            padding: 2.5rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px var(--shadow-light);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 260px;
+            flex-shrink: 0;
+            background: var(--white);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--grey);
+        }
+
+        .user-profile {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .user-profile .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .user-profile h3 { margin: 0.5rem 0 0.2rem; }
+        .user-profile p { margin: 0; font-size: 0.9rem; color: #777; }
+
+        .sidebar-nav .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1.2rem;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-nav .nav-item:hover, .sidebar-nav .nav-item.active {
+            background-color: #eef5ff;
+            color: var(--primary-color);
+        }
+        
+        .sidebar-nav .nav-icon { margin-right: 1rem; }
+
+        .logout-button-sidebar {
+            margin-top: auto;
+            padding: 0.8rem;
+            border: 1px solid #e74c3c;
+            background-color: transparent;
+            color: #e74c3c;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .logout-button-sidebar:hover {
+            background-color: #e74c3c;
+            color: var(--white);
+        }
+        
+        /* --- Main Content: Dashboard --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .header h1 { font-size: 2rem; font-weight: 700; }
+        
+        /* --- Main Content: Flashcards --- */
+        .flashcards-view {
+             max-width: 900px;
+             margin: 0 auto;
+        }
+        
+        .flashcards-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 1rem;
+        }
+        .flashcards-header .back-button {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        .flashcards-header .back-button:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+        .flashcards-header h2 { font-size: 2.2rem; margin: 0; }
+        
+        .flashcard {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px var(--shadow-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .flashcard .main-image {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            margin-bottom: 1rem;
+        }
+
+        .flashcard .question {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 1rem 0;
+        }
+
+        .flashcard .listen-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #f0f0f0;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-bottom: 2rem;
+        }
+
+        .flashcard .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .flashcard .option-card {
+            background: #f8f9fa;
+            border: 2px solid var(--grey);
+            border-radius: 15px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .flashcard .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px var(--shadow-light);
+            border-color: var(--primary-color);
+        }
+        .flashcard .option-card img {
+            width: 60px;
+            height: 60px;
+        }
+        .flashcard .option-card p {
+            margin: 0.5rem 0 0;
+            font-weight: 500;
+        }
+        
+        /* Navigation & Progress */
+        .flashcard-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+        .flashcard-nav button {
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--grey);
+            background: var(--white);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .flashcard-nav button:hover:not(:disabled) {
+            background: #eef5ff;
+            border-color: var(--primary-color);
+        }
+        .flashcard-nav button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .progress-dots {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .progress-dots .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--grey);
+            transition: all 0.3s ease;
+        }
+        .progress-dots .dot.active {
+            background-color: var(--primary-color);
+            transform: scale(1.2);
+        }
+        
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--grey); }
+            .main-content { padding: 1.5rem; }
+        }
+
+        /* Utility classes (like fadeIn, etc.) can remain */
+        .flashcards-header .score-display {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        .flashcards-header .score-display span {
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const AuthContext = React.createContext(null);
+
+        const AuthProvider = ({ children }) => {
+            const [user, setUser] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+
+            React.useEffect(() => {
+                const checkAuth = async () => {
+                    try {
+                        const response = await axios.get('http://localhost:5000/check-auth');
+                        if (response.data.authenticated) {
+                            setUser(response.data.user);
+                        }
+                    } catch (error) {
+                        console.error('Error checking auth:', error);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                checkAuth();
+            }, []);
+
+            return (
+                <AuthContext.Provider value={{ user, setUser, loading }}>
+                    {children}
+                </AuthContext.Provider>
+            );
+        };
+        
+        const Login = ({ onToggleAuth }) => {
+            const [formData, setFormData] = React.useState({ email: '', password: '' });
+            const [error, setError] = React.useState('');
+            const { setUser } = React.useContext(AuthContext);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                try {
+                    const response = await axios.post('http://localhost:5000/login', formData);
+                    setUser(response.data.user);
+                } catch (error) {
+                    setError(error.response?.data?.message || 'Error al iniciar sesión');
+                }
+            };
+
+            return (
+                <div className="auth-container fade-in">
+                    <h2>Iniciar Sesión</h2>
+                    <form className="auth-form" onSubmit={handleSubmit}>
+                        <input
+                            type="email"
+                            placeholder="Correo electrónico"
+                            value={formData.email}
+                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                            required
+                        />
+                        <input
+                            type="password"
+                            placeholder="Contraseña"
+                            value={formData.password}
+                            onChange={(e) => setFormData({...formData, password: e.target.value})}
+                            required
+                        />
+                        <button type="submit">Iniciar Sesión</button>
+                        {error && <div className="error-message">{error}</div>}
+                    </form>
+                    <div className="auth-toggle">
+                        <button onClick={onToggleAuth}>
+                            ¿No tienes cuenta? Regístrate aquí
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const Register = ({ onToggleAuth }) => {
+            const [formData, setFormData] = React.useState({ name: '', email: '', password: '', confirmPassword: '' });
+            const [error, setError] = React.useState('');
+            const [success, setSuccess] = React.useState('');
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                setSuccess('');
+                if (formData.password !== formData.confirmPassword) {
+                    setError('Las contraseñas no coinciden');
+                    return;
+                }
+                try {
+                    await axios.post('http://localhost:5000/register', {
+                        name: formData.name, email: formData.email, password: formData.password
+                    });
+                    setSuccess('Registro exitoso. Ya puedes iniciar sesión.');
+                    setTimeout(() => onToggleAuth(), 2000);
+                } catch (error) {
+                    setError(error.response?.data?.message || 'Error al registrarse');
+                }
+            };
+            
+            return (
+                <div className="auth-container fade-in">
+                    <h2>Registro</h2>
+                    <form className="auth-form" onSubmit={handleSubmit}>
+                        <input type="text" placeholder="Nombre completo" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+                        <input type="email" placeholder="Correo electrónico" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
+                        <input type="password" placeholder="Contraseña" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} required />
+                        <input type="password" placeholder="Confirmar contraseña" value={formData.confirmPassword} onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})} required />
+                        <button type="submit">Registrarse</button>
+                        {error && <div className="error-message">{error}</div>}
+                        {success && <div className="success-message">{success}</div>}
+                    </form>
+                    <div className="auth-toggle">
+                        <button onClick={onToggleAuth}>¿Ya tienes cuenta? Inicia sesión aquí</button>
+                    </div>
+                </div>
+            );
+        };
+        
+        const Sidebar = ({ user, handleLogout }) => {
+            return (
+                <aside className="sidebar">
+                    <div className="user-profile">
+                        <img src={user.avatar || `https://i.pravatar.cc/150?u=${user.email}`} alt="User Avatar" className="avatar" />
+                        <h3>{user.name}</h3>
+                        <p>{user.email}</p>
+                    </div>
+                    <nav className="sidebar-nav">
+                        <a href="#" className="nav-item active">📊 Dashboard</a>
+                        <a href="#" className="nav-item">👤 Mi Perfil</a>
+                        <a href="#" className="nav-item">📈 Mi Progreso</a>
+                    </nav>
+                    <button onClick={handleLogout} className="logout-button-sidebar">Cerrar Sesión</button>
+                </aside>
+            );
+        };
+
+        const App = () => {
+            const [showLogin, setShowLogin] = React.useState(true);
+            const { user, loading } = React.useContext(AuthContext);
+
+            if (loading) return <div>Cargando...</div>;
+
+            if (!user) {
+                const AuthComponent = showLogin ? Login : Register;
+                return <AuthComponent onToggleAuth={() => setShowLogin(!showLogin)} />;
+            }
+
+            return (
+                <div className="app-container">
+                    <Sidebar user={user} handleLogout={() => {}} />
+                    <main className="main-content">
+                        <StudyFields user={user} />
+                    </main>
+                </div>
+            );
+        };
+
+        const learningFields = {
+            'Desarrollo Emocional': {
+                icon: '😊',
+                description: 'Aprende a identificar y expresar emociones',
+                color: 'linear-gradient(45deg, #FF9A9E, #FAD0C4)',
+                route: 'emociones'
+            },
+            'Conceptos Básicos': {
+                icon: '🎨',
+                description: 'Explora colores, formas y números',
+                color: 'linear-gradient(45deg, #A8EDEA, #FED6E3)',
+                route: 'conceptos'
+            },
+            // ... Add other fields back
+        };
+
+        const StudyFields = ({ user }) => {
+            const [selectedField, setSelectedField] = React.useState(null);
+            const [flashcards, setFlashcards] = React.useState([]);
+            
+            const handleFieldClick = async (field) => {
+                try {
+                    const response = await axios.get(`http://localhost:5000/api/flashcards/${learningFields[field].route}`);
+                    setFlashcards(response.data);
+                    setSelectedField(field);
+                } catch (error) {
+                    console.error('Error fetching flashcards:', error);
+                    alert('Error al cargar las tarjetas.');
+                }
+            };
+
+            const handleBack = () => {
+                setSelectedField(null);
+                setFlashcards([]);
+            };
+
+            if (selectedField) {
+                return <FlashcardView field={selectedField} flashcards={flashcards} onBack={handleBack} />;
+            }
+
+            return (
+                <div>
+                    <div className="header">
+                        <h1>¿Qué quieres aprender hoy, {user.name.split(' ')[0]}?</h1>
+                    </div>
+                    <div className="study-fields-grid">
+                        {Object.entries(learningFields).map(([field, info]) => (
+                            <div key={field} className="field-card" onClick={() => handleFieldClick(field)} style={{ background: info.color }}>
+                                <div className="field-icon">{info.icon}</div>
+                                <h2>{field}</h2>
+                                <p>{info.description}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const FlashcardView = ({ field, flashcards, onBack }) => {
+            const [current, setCurrent] = React.useState(0);
+            const [selectedAnswer, setSelectedAnswer] = React.useState(null);
+            const [isCorrect, setIsCorrect] = React.useState(null);
+            const [score, setScore] = React.useState(0);
+            const card = flashcards[current];
+
+            const route = learningFields[field].route;
+
+            React.useEffect(() => {
+                const fetchScore = async () => {
+                    try {
+                        const response = await axios.get(`http://localhost:5000/get-progress/${route}`);
+                        if (response.data && response.data.score) {
+                            setScore(response.data.score);
+                        }
+                    } catch (error) {
+                        console.error("Error fetching score", error);
+                    }
+                };
+                fetchScore();
+            }, [route]);
+
+            const handleAnswerClick = async (index) => {
+                if (selectedAnswer !== null) return;
+
+                const correct = index === card.correct_option;
+                setSelectedAnswer(index);
+                setIsCorrect(correct);
+
+                try {
+                    const response = await axios.post('http://localhost:5000/save-progress', {
+                        category: route,
+                        flashcard_id: card.id,
+                        is_correct: correct
+                    });
+                    if (response.data && response.data.new_score) {
+                        setScore(response.data.new_score);
+                    }
+                } catch (error) {
+                    console.error('Error saving progress:', error);
+                }
+            };
+            
+            const handleNext = () => {
+                setSelectedAnswer(null);
+                setIsCorrect(null);
+                if (current < flashcards.length - 1) {
+                    setCurrent(c => c + 1);
+                }
+            };
+
+            const handleSpeak = (text) => {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'es-ES';
+                speechSynthesis.speak(utterance);
+            };
+
+            return (
+                <div className="flashcards-view">
+                    <div className="flashcards-header">
+                        <button onClick={onBack} className="back-button">← Volver a Campos de Estudio</button>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                            <h2>{field}</h2>
+                            <div className="score-display">Puntuación: <span>{score}</span></div>
+                        </div>
+                    </div>
+
+                    <div className="flashcard">
+                        <img src={card.image_url} alt={card.question} className="main-image"/>
+                        <p className="question">{card.question}</p>
+                        <button onClick={() => handleSpeak(card.question)} className="listen-button">
+                            🔊 Escuchar
+                        </button>
+                        <div className="options-grid">
+                            {card.options.map((option, index) => {
+                                const isSelected = selectedAnswer === index;
+                                let borderColor = 'var(--grey)';
+                                if (isSelected) {
+                                    borderColor = isCorrect ? 'var(--secondary-color)' : '#e74c3c';
+                                }
+                                
+                                return (
+                                    <div 
+                                        key={index}
+                                        className="option-card"
+                                        style={{ borderColor, borderWidth: isSelected ? '3px' : '2px' }}
+                                        onClick={() => selectedAnswer === null && handleAnswerClick(index)}
+                                    >
+                                        <img src={option.image_url || 'https://via.placeholder.com/60'} alt={option.text}/>
+                                        <p>{option.text}</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        {selectedAnswer !== null && (
+                            <div className="feedback-message" style={{color: isCorrect ? 'var(--secondary-color)' : '#e74c3c', marginTop: '1rem', fontWeight: 'bold'}}>
+                                {isCorrect ? `¡Correcto! ${card.feedback}` : 'Inténtalo de nuevo.'}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flashcard-nav">
+                        <button onClick={() => setCurrent(c => c - 1)} disabled={current === 0}>← Anterior</button>
+                        <div className="progress-dots">
+                            {flashcards.map((_, i) => <div key={i} className={`dot ${i === current ? 'active' : ''}`}></div>)}
+                        </div>
+                        <button onClick={handleNext} disabled={current === flashcards.length - 1}>Siguiente →</button>
+                    </div>
+                </div>
+            );
+        };
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<AuthProvider><App /></AuthProvider>);
+    </script>
+</body>
+</html> 
